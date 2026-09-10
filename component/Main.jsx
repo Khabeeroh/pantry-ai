@@ -138,7 +138,7 @@ export default function Main({ onRecipeGenerated, onGoToRecipes }) {
                 >
                   💪 High protein
                 </button>
-                
+
               </div>
 
             </div>

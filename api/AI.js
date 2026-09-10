@@ -88,13 +88,13 @@ const hf = new HfInference(apikey);
 // }
 
 const recipeImages = {
-  "jollof rice": "/images/jollof-rice.png",
-  "efo riro": "/images/efo.png",
-  "egusi soup": "/images/egusi.png",
-  "moi moi": "/images/moimoi.jpg",
-  "fried rice": "/images/fried-rice.jpg",
-  "pepper soup": "/images/pepper-soup.jpg",
-  "yam porridge": "/images/yam-porridge.jpg",
+  "jollof rice": "./images/jollof-rice.png",
+  "efo riro": "./images/efo.png",
+  "egusi soup": "./images/egusi.png",
+  "moi moi": "./images/moimoi.jpg",
+  "fried rice": "./images/fried-rice.jpg",
+  "pepper soup": "./images/pepper-soup.jpg",
+  "yam porridge": "./images/yam-porridge.jpg",
 };
 
 function getRecipeImage(title) {
