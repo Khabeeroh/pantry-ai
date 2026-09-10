@@ -43,43 +43,71 @@ Use exactly this structure:
 `;
 
 const apikey = import.meta.env.VITE_RECIPE_API_KEY;
+
+if (!apikey) {
+  throw new Error("VITE_RECIPE_API_KEY is missing");
+}
+
 const hf = new HfInference(apikey);
 
 
-// GENERATE RECIPE IMAGE
-export async function generateRecipeImage(recipe) {
-  try {
-    const prompt = `
-      A realistic, appetizing food photograph of "${recipe.title}".
+// // GENERATE RECIPE IMAGE
+// export async function generateRecipeImage(recipe) {
+//   try {
+//     const prompt = `
+//       A realistic, appetizing food photograph of "${recipe.title}".
       
-      ${recipe.description}
+//       ${recipe.description}
 
-      The dish should look freshly cooked and beautifully plated.
-      Authentic Nigerian cuisine style where appropriate.
-      Natural food photography.
-      Realistic food textures.
-      Warm lighting.
-      Professional restaurant-quality presentation.
-      The food should be the main focus.
-      No text, no words, no labels, no watermark.
-    `;
+//       The dish should look freshly cooked and beautifully plated.
+//       Authentic Nigerian cuisine style where appropriate.
+//       Natural food photography.
+//       Realistic food textures.
+//       Warm lighting.
+//       Professional restaurant-quality presentation.
+//       The food should be the main focus.
+//       No text, no words, no labels, no watermark.
+//     `;
     
-    const imageBlob = await hf.textToImage({
-      model: "krea/Krea-2-Turbo",
-      inputs: prompt,
-    });
+//     console.log("Generating image for:", recipe.title);
 
-    return URL.createObjectURL(imageBlob);
+//     const imageBlob = await hf.textToImage({
+//       model: "krea/Krea-2-Turbo",
+//       inputs: prompt,
+//     });
 
-  } catch (error) {
-    console.error("Recipe image generation error:", error);
+//     console.log("Image generated successfully!");
 
-    return null;
-  }
+//     return URL.createObjectURL(imageBlob);
+
+//   } catch (error) {
+//     console.error("Recipe image generation error:", error);
+
+//     return null;
+//   }
+// }
+
+const recipeImages = {
+  "jollof rice": "/images/jollof-rice.png",
+  "efo riro": "/images/efo.png",
+  "egusi soup": "/images/egusi.png",
+  "moi moi": "/images/moimoi.jpg",
+  "fried rice": "/images/fried-rice.jpg",
+  "pepper soup": "/images/pepper-soup.jpg",
+  "yam porridge": "/images/yam-porridge.jpg",
+};
+
+function getRecipeImage(title) {
+  const recipeName = title.toLowerCase();
+
+  const match = Object.keys(recipeImages).find((name) =>
+    recipeName.includes(name)
+  );
+
+  return match
+    ? recipeImages[match]
+    : "/images/recipe-generated.jpg";
 }
-
-
-
 // GENERATE RECIPE
 export async function getRecipeFromMistral(ingredientsArr) {
 
@@ -112,13 +140,16 @@ export async function getRecipeFromMistral(ingredientsArr) {
       max_tokens: 2048,
     });
 
+
     // Get recipe response
     const recipeText =
       response.choices?.[0]?.message?.content;
 
+
     if (!recipeText) {
       throw new Error("No recipe was generated.");
     }
+
 
     // Remove accidental markdown code fences
     const cleanedRecipe = recipeText
@@ -131,17 +162,23 @@ export async function getRecipeFromMistral(ingredientsArr) {
     const recipe = JSON.parse(cleanedRecipe);
 
 
+
     // GENERATE IMAGE AFTER RECIPE
-  
-    const image = await generateRecipeImage(recipe);
+
+    // const image = await generateRecipeImage(recipe);
+
+
     // Return recipe + image
     return {
       ...recipe,
-      image,
+       image: getRecipeImage(recipe.title),
     };
 
+
   } catch (error) {
+
     console.error("Recipe generation error:", error);
+
     throw new Error(
       "Unable to generate the recipe. Please try again."
     );
