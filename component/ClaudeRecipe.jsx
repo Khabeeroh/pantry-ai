@@ -1,10 +1,19 @@
 import { useState } from "react";
 
 export default function ClaudeRecipe({ recipe, onBack }) {
+  const [comingSoonMessage, setComingSoonMessage] = useState("");
   const [showCookingMode, setShowCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [saved, setSaved] = useState(false);
   
+
+  function showComingSoon(message) {
+  setComingSoonMessage(message);
+
+  setTimeout(() => {
+    setComingSoonMessage("");
+  }, 3000);
+}
 
   function saveRecipe() {
     const savedRecipes =
@@ -223,7 +232,11 @@ export default function ClaudeRecipe({ recipe, onBack }) {
                 {saved ? "♥ Saved" : "♡ Save Recipe"}
               </button>
 
-              <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700">
+              <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
+               onClick={() =>
+              showComingSoon("Shopping list feature coming soon!")
+              }
+              >
                 🛒 Shopping List
               </button>
 
@@ -273,11 +286,22 @@ export default function ClaudeRecipe({ recipe, onBack }) {
 
             </div>
 
-            <button className="mt-6 w-full rounded-xl border border-orange-200 bg-orange-50 py-3 text-sm font-semibold text-orange-700">
+            <button className="mt-6 w-full rounded-xl border border-orange-200 bg-orange-50 py-3 text-sm font-semibold text-orange-700"
+              onClick={() =>
+              showComingSoon("Add to ingredients feature coming soon!")
+              }
+            >
               + Add missing ingredients
             </button>
 
           </div>
+          {comingSoonMessage && (
+            <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2">
+              <div className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white shadow-lg">
+                {comingSoonMessage}
+              </div>
+            </div>
+          )}
 
           {/* Instructions */}
           <div className="rounded-3xl bg-white p-7 shadow-sm">
