@@ -1,0 +1,58 @@
+import { useState } from "react";
+import Main from "../component/Main";
+import ClaudeRecipe from "../component/ClaudeRecipe";
+import MyRecipes from "../component/MyRecipe";
+
+
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [recipe, setRecipe] = useState(null);
+
+  function handleRecipeGenerated(newRecipe) {
+    setRecipe(newRecipe);
+    setPage("recipe");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function handleOpenSavedRecipe(savedRecipe) {
+    setRecipe(savedRecipe);
+    setPage("recipe");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FFF9F0]">
+
+      {page === "home" && (
+        <Main
+          onRecipeGenerated={handleRecipeGenerated}
+          onGoToRecipes={() => setPage("saved")}
+           onGoHome={() => setPage("home")}
+        />
+      )}
+
+      {page === "recipe" && recipe && (
+        <ClaudeRecipe
+          recipe={recipe}
+          onBack={() => setPage("home")}
+        />
+      )}
+
+      {page === "saved" && (
+        <MyRecipes
+          onOpenRecipe={handleOpenSavedRecipe}
+          onBack={() => setPage("home")}
+        />
+      )}
+
+    </div>
+  );
+}
