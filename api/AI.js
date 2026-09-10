@@ -106,7 +106,7 @@ function getRecipeImage(title) {
 
   return match
     ? recipeImages[match]
-    : "./images/recipe-generated.jpg";
+    : "./images/recipe-generated1.png";
 }
 // GENERATE RECIPE
 export async function getRecipeFromMistral(ingredientsArr) {
