@@ -7,18 +7,18 @@ export default function ClaudeRecipe({ recipe, onBack }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [saved, setSaved] = useState(false);
 
-const [showShoppingList, setShowShoppingList] = useState(false);
-const [purchasedItems, setPurchasedItems] = useState([]);
-const [copied, setCopied] = useState(false);
-  
+  const [showShoppingList, setShowShoppingList] = useState(false);
+  const [purchasedItems, setPurchasedItems] = useState([]);
+  const [copied, setCopied] = useState(false);
+
 
   function showComingSoon(message) {
-  setComingSoonMessage(message);
+    setComingSoonMessage(message);
 
-  setTimeout(() => {
-    setComingSoonMessage("");
-  }, 3000);
-}
+    setTimeout(() => {
+      setComingSoonMessage("");
+    }, 3000);
+  }
 
   function saveRecipe() {
     const savedRecipes =
@@ -39,36 +39,36 @@ const [copied, setCopied] = useState(false);
   }
 
   function togglePurchased(index) {
-  setPurchasedItems((prev) =>
-    prev.includes(index)
-      ? prev.filter((item) => item !== index)
-      : [...prev, index]
-  );
-}
-
-async function copyShoppingList() {
-  const shoppingList = recipe.ingredients
-    .map(
-      (ingredient) =>
-        `- ${ingredient.name}: ${ingredient.quantity}`
-    )
-    .join("\n");
-
-  try {
-    await navigator.clipboard.writeText(
-      `${recipe.title} - Shopping List\n\n${shoppingList}`
+    setPurchasedItems((prev) =>
+      prev.includes(index)
+        ? prev.filter((item) => item !== index)
+        : [...prev, index]
     );
-
-    setCopied(true);
-
-    setTimeout(() => {
-      setCopied(false);
-    }, 2500);
-
-  } catch (error) {
-    console.error("Failed to copy shopping list:", error);
   }
-}
+
+  async function copyShoppingList() {
+    const shoppingList = recipe.ingredients
+      .map(
+        (ingredient) =>
+          `- ${ingredient.name}: ${ingredient.quantity}`
+      )
+      .join("\n");
+
+    try {
+      await navigator.clipboard.writeText(
+        `${recipe.title} - Shopping List\n\n${shoppingList}`
+      );
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2500);
+
+    } catch (error) {
+      console.error("Failed to copy shopping list:", error);
+    }
+  }
 
   function nextStep() {
     if (currentStep < recipe.instructions.length - 1) {
@@ -115,7 +115,7 @@ async function copyShoppingList() {
               className="h-full rounded-full bg-[#E8751A] transition-all duration-500"
               style={{
                 width: `${((currentStep + 1) /
-                    recipe.instructions.length) *
+                  recipe.instructions.length) *
                   100
                   }%`,
               }}
@@ -180,243 +180,243 @@ async function copyShoppingList() {
 
   return (
     <>
-    <Header 
-      onBack={onBack}
-    />
-    
+      <Header
+        onBack={onBack}
+      />
+
       <main className="min-h-screen bg-[#FFF9F0] px-6 py-10 md:px-12">
 
-      <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl">
 
-        {/* Back */}
-        <button
-          onClick={onBack}
-          className="mb-8 text-sm font-medium text-gray-600 hover:text-[#164C3A]"
-        >
-          ← Back to recipes
-        </button>
+          {/* Back */}
+          <button
+            onClick={onBack}
+            className="mb-8 text-sm font-medium text-gray-600 hover:text-[#164C3A]"
+          >
+            ← Back to recipes
+          </button>
 
-        {/* Header */}
-        <section className="grid gap-8 lg:grid-cols-2">
+          {/* Header */}
+          <section className="grid gap-8 lg:grid-cols-2">
 
-          <div className="flex min-h-100 items-center justify-center rounded-4xl bg-linear-to-br from-green-100 to-orange-100 p-10">
+            <div className="flex min-h-100 items-center justify-center rounded-4xl bg-linear-to-br from-green-100 to-orange-100 p-10">
 
-            <div className="text-center">
+              <div className="text-center">
 
-              <div className="text-8xl">
-                <img src={recipe.image} alt={recipe.tittle} /></div>
+                <div className="text-8xl">
+                  <img src={recipe.image} alt={recipe.tittle} /></div>
 
-              {/* <p className="mt-5 text-sm font-medium text-gray-500">
+                {/* <p className="mt-5 text-sm font-medium text-gray-500">
                 AI generated recipe
               </p> */}
 
-            </div>
-
-          </div>
-
-          <div className="flex flex-col justify-center">
-
-            <div className="mb-4 flex gap-2">
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-[#164C3A]">
-                {recipe.cuisine}
-              </span>
-
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
-                AI Generated
-              </span>
-            </div>
-
-            <h1 className="text-4xl font-bold leading-tight text-[#164C3A] md:text-5xl">
-              {recipe.title}
-            </h1>
-
-            <p className="mt-5 leading-7 text-gray-600">
-              {recipe.description}
-            </p>
-
-            {/* Recipe information */}
-            <div className="mt-7 grid grid-cols-3 gap-3">
-
-              <InfoCard
-                icon="⏱️"
-                label="Cooking"
-                value={recipe.cookingTime}
-              />
-
-              <InfoCard
-                icon="👩🏽‍🍳"
-                label="Difficulty"
-                value={recipe.difficulty}
-              />
-
-              <InfoCard
-                icon="👥"
-                label="Servings"
-                value={recipe.servings}
-              />
-
-            </div>
-
-            {/* Actions */}
-            <div className="mt-7 flex flex-wrap gap-3">
-
-              <button
-                onClick={() => setShowCookingMode(true)}
-                className="rounded-xl bg-[#E8751A] px-6 py-3 font-semibold text-white transition hover:bg-orange-700"
-              >
-                ✨ Start Cooking
-              </button>
-
-              <button
-                onClick={saveRecipe}
-                className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
-              >
-                {saved ? "♥ Saved" : "♡ Save Recipe"}
-              </button>
-
-              <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
-              onClick={() => setShowShoppingList(true)}
-              >
-                🛒 Shopping List
-              </button>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* Ingredients + instructions */}
-        <section className="mt-12 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-
-          {/* Ingredients */}
-          <div className="rounded-3xl bg-white p-7 shadow-sm">
-
-            <h2 className="text-2xl font-bold text-[#164C3A]">
-              🛒 Ingredients
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Everything you'll need for this recipe.
-            </p>
-
-            <div className="mt-7 space-y-4">
-
-              {recipe.ingredients.map((ingredient, index) => (
-                <label
-                  key={index}
-                  className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition hover:bg-[#FFF9F0]"
-                >
-
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 accent-[#E8751A]"
-                  />
-
-                  <span className="flex-1 text-gray-700">
-                    {ingredient.name}
-                  </span>
-
-                  <span className="text-sm font-medium text-gray-500">
-                    {ingredient.quantity}
-                  </span>
-
-                </label>
-              ))}
-
-            </div>
-
-            <button className="mt-6 w-full rounded-xl border border-orange-200 bg-orange-50 py-3 text-sm font-semibold text-orange-700"
-              onClick={() =>
-              showComingSoon("Add to ingredients feature coming soon!")
-              }
-            >
-              + Add missing ingredients
-            </button>
-
-          </div>
-          {comingSoonMessage && (
-            <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2">
-              <div className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white shadow-lg">
-                {comingSoonMessage}
               </div>
-            </div>
-          )}
-
-          {/* Instructions */}
-          <div className="rounded-3xl bg-white p-7 shadow-sm">
-
-            <h2 className="text-2xl font-bold text-[#164C3A]">
-              👩🏽‍🍳 Instructions
-            </h2>
-
-            <div className="mt-7 space-y-7">
-
-              {recipe.instructions.map((instruction) => (
-                <div
-                  key={instruction.step}
-                  className="flex gap-4"
-                >
-
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#164C3A] text-sm font-bold text-white">
-                    {instruction.step}
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {instruction.title}
-                    </h3>
-
-                    <p className="mt-2 leading-7 text-gray-600">
-                      {instruction.description}
-                    </p>
-                  </div>
-
-                </div>
-              ))}
 
             </div>
 
-          </div>
+            <div className="flex flex-col justify-center">
 
-        </section>
+              <div className="mb-4 flex gap-2">
+                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-[#164C3A]">
+                  {recipe.cuisine}
+                </span>
 
-        {/* Tips */}
-        {recipe.tips?.length > 0 && (
-          <section className="mt-8 rounded-3xl bg-[#164C3A] p-7 text-white">
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+                  AI Generated
+                </span>
+              </div>
 
-            <h2 className="text-xl font-bold">
-              💡 PantryPal Tips
-            </h2>
+              <h1 className="text-4xl font-bold leading-tight text-[#164C3A] md:text-5xl">
+                {recipe.title}
+              </h1>
 
-            <div className="mt-4 space-y-2">
-              {recipe.tips.map((tip, index) => (
-                <p
-                  key={index}
-                  className="text-sm leading-6 text-green-50"
+              <p className="mt-5 leading-7 text-gray-600">
+                {recipe.description}
+              </p>
+
+              {/* Recipe information */}
+              <div className="mt-7 grid grid-cols-3 gap-3">
+
+                <InfoCard
+                  icon="⏱️"
+                  label="Cooking"
+                  value={recipe.cookingTime}
+                />
+
+                <InfoCard
+                  icon="👩🏽‍🍳"
+                  label="Difficulty"
+                  value={recipe.difficulty}
+                />
+
+                <InfoCard
+                  icon="👥"
+                  label="Servings"
+                  value={recipe.servings}
+                />
+
+              </div>
+
+              {/* Actions */}
+              <div className="mt-7 flex flex-wrap gap-3">
+
+                <button
+                  onClick={() => setShowCookingMode(true)}
+                  className="rounded-xl bg-[#E8751A] px-6 py-3 font-semibold text-white transition hover:bg-orange-700"
                 >
-                  • {tip}
-                </p>
-              ))}
+                  ✨ Start Cooking
+                </button>
+
+                <button
+                  onClick={saveRecipe}
+                  className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
+                >
+                  {saved ? "♥ Saved" : "♡ Save Recipe"}
+                </button>
+
+                <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
+                  onClick={() => setShowShoppingList(true)}
+                >
+                  🛒 Shopping List
+                </button>
+
+              </div>
+
             </div>
 
           </section>
-        )}
 
-      </div>
+          {/* Ingredients + instructions */}
+          <section className="mt-12 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
 
-    </main>
+            {/* Ingredients */}
+            <div className="rounded-3xl bg-white p-7 shadow-sm">
 
-    {showShoppingList && (
-  <ShoppingListModal
-    recipe={recipe}
-    purchasedItems={purchasedItems}
-    togglePurchased={togglePurchased}
-    copyShoppingList={copyShoppingList}
-    copied={copied}
-    onClose={() => setShowShoppingList(false)}
-  />
-)}
+              <h2 className="text-2xl font-bold text-[#164C3A]">
+                🛒 Ingredients
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Everything you'll need for this recipe.
+              </p>
+
+              <div className="mt-7 space-y-4">
+
+                {recipe.ingredients.map((ingredient, index) => (
+                  <label
+                    key={index}
+                    className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition hover:bg-[#FFF9F0]"
+                  >
+
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5 accent-[#E8751A]"
+                    />
+
+                    <span className="flex-1 text-gray-700">
+                      {ingredient.name}
+                    </span>
+
+                    <span className="text-sm font-medium text-gray-500">
+                      {ingredient.quantity}
+                    </span>
+
+                  </label>
+                ))}
+
+              </div>
+
+              <button className="mt-6 w-full rounded-xl border border-orange-200 bg-orange-50 py-3 text-sm font-semibold text-orange-700"
+                onClick={() =>
+                  showComingSoon("Add to ingredients feature coming soon!")
+                }
+              >
+                + Add missing ingredients
+              </button>
+
+            </div>
+            {comingSoonMessage && (
+              <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2">
+                <div className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white shadow-lg">
+                  {comingSoonMessage}
+                </div>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="rounded-3xl bg-white p-7 shadow-sm">
+
+              <h2 className="text-2xl font-bold text-[#164C3A]">
+                👩🏽‍🍳 Instructions
+              </h2>
+
+              <div className="mt-7 space-y-7">
+
+                {recipe.instructions.map((instruction) => (
+                  <div
+                    key={instruction.step}
+                    className="flex gap-4"
+                  >
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#164C3A] text-sm font-bold text-white">
+                      {instruction.step}
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {instruction.title}
+                      </h3>
+
+                      <p className="mt-2 leading-7 text-gray-600">
+                        {instruction.description}
+                      </p>
+                    </div>
+
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* Tips */}
+          {recipe.tips?.length > 0 && (
+            <section className="mt-8 rounded-3xl bg-[#164C3A] p-7 text-white">
+
+              <h2 className="text-xl font-bold">
+                💡 PantryPal Tips
+              </h2>
+
+              <div className="mt-4 space-y-2">
+                {recipe.tips.map((tip, index) => (
+                  <p
+                    key={index}
+                    className="text-sm leading-6 text-green-50"
+                  >
+                    • {tip}
+                  </p>
+                ))}
+              </div>
+
+            </section>
+          )}
+
+        </div>
+
+      </main>
+
+      {showShoppingList && (
+        <ShoppingListModal
+          recipe={recipe}
+          purchasedItems={purchasedItems}
+          togglePurchased={togglePurchased}
+          copyShoppingList={copyShoppingList}
+          copied={copied}
+          onClose={() => setShowShoppingList(false)}
+        />
+      )}
     </>
   );
 }
@@ -486,11 +486,10 @@ function ShoppingListModal({
             <div
               className="h-full rounded-full bg-[#E8751A] transition-all duration-300"
               style={{
-                width: `${
-                  totalItems > 0
-                    ? (purchasedCount / totalItems) * 100
-                    : 0
-                }%`,
+                width: `${totalItems > 0
+                  ? (purchasedCount / totalItems) * 100
+                  : 0
+                  }%`,
               }}
             />
 
@@ -523,11 +522,10 @@ function ShoppingListModal({
               return (
                 <label
                   key={index}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                    isPurchased
-                      ? "border-green-200 bg-green-50"
-                      : "border-gray-100 hover:bg-[#FFF9F0]"
-                  }`}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${isPurchased
+                    ? "border-green-200 bg-green-50"
+                    : "border-gray-100 hover:bg-[#FFF9F0]"
+                    }`}
                 >
 
                   <input
@@ -538,11 +536,10 @@ function ShoppingListModal({
                   />
 
                   <span
-                    className={`flex-1 text-sm ${
-                      isPurchased
-                        ? "text-gray-400 line-through"
-                        : "text-gray-700"
-                    }`}
+                    className={`flex-1 text-sm ${isPurchased
+                      ? "text-gray-400 line-through"
+                      : "text-gray-700"
+                      }`}
                   >
                     {ingredient.name}
                   </span>
