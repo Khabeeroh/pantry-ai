@@ -32,6 +32,7 @@ export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, ingredient
     if (!alreadySaved) {
       const recipeWithIngredients = {
         ...recipe,
+        id: crypto.randomUUID(),
         userIngredients: ingredientsArr,
       };
       localStorage.setItem(
