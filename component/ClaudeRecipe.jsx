@@ -6,6 +6,10 @@ export default function ClaudeRecipe({ recipe, onBack }) {
   const [showCookingMode, setShowCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [saved, setSaved] = useState(false);
+
+const [showShoppingList, setShowShoppingList] = useState(false);
+const [purchasedItems, setPurchasedItems] = useState([]);
+const [copied, setCopied] = useState(false);
   
 
   function showComingSoon(message) {
@@ -33,6 +37,38 @@ export default function ClaudeRecipe({ recipe, onBack }) {
 
     setSaved(true);
   }
+
+  function togglePurchased(index) {
+  setPurchasedItems((prev) =>
+    prev.includes(index)
+      ? prev.filter((item) => item !== index)
+      : [...prev, index]
+  );
+}
+
+async function copyShoppingList() {
+  const shoppingList = recipe.ingredients
+    .map(
+      (ingredient) =>
+        `- ${ingredient.name}: ${ingredient.quantity}`
+    )
+    .join("\n");
+
+  try {
+    await navigator.clipboard.writeText(
+      `${recipe.title} - Shopping List\n\n${shoppingList}`
+    );
+
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2500);
+
+  } catch (error) {
+    console.error("Failed to copy shopping list:", error);
+  }
+}
 
   function nextStep() {
     if (currentStep < recipe.instructions.length - 1) {
@@ -239,9 +275,7 @@ export default function ClaudeRecipe({ recipe, onBack }) {
               </button>
 
               <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
-               onClick={() =>
-              showComingSoon("Shopping list feature coming soon!")
-              }
+              onClick={() => setShowShoppingList(true)}
               >
                 🛒 Shopping List
               </button>
@@ -372,7 +406,183 @@ export default function ClaudeRecipe({ recipe, onBack }) {
       </div>
 
     </main>
+
+    {showShoppingList && (
+  <ShoppingListModal
+    recipe={recipe}
+    purchasedItems={purchasedItems}
+    togglePurchased={togglePurchased}
+    copyShoppingList={copyShoppingList}
+    copied={copied}
+    onClose={() => setShowShoppingList(false)}
+  />
+)}
     </>
+  );
+}
+
+function ShoppingListModal({
+  recipe,
+  purchasedItems,
+  togglePurchased,
+  copyShoppingList,
+  copied,
+  onClose,
+}) {
+  const totalItems = recipe.ingredients.length;
+  const purchasedCount = purchasedItems.length;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 backdrop-blur-sm">
+
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl md:p-8">
+
+        {/* Header */}
+        <div className="flex items-start justify-between">
+
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🛒</span>
+
+              <h2 className="text-2xl font-bold text-[#164C3A]">
+                Shopping List
+              </h2>
+            </div>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Everything you need for {recipe.title}.
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="rounded-full p-2 text-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+          >
+            ✕
+          </button>
+
+        </div>
+
+
+        {/* Progress */}
+        <div className="mt-6 rounded-2xl bg-[#FFF9F0] p-4">
+
+          <div className="flex items-center justify-between">
+
+            <p className="text-sm font-medium text-[#164C3A]">
+              {purchasedCount} of {totalItems} items purchased
+            </p>
+
+            <span className="text-sm font-semibold text-[#E8751A]">
+              {totalItems > 0
+                ? Math.round((purchasedCount / totalItems) * 100)
+                : 0}%
+            </span>
+
+          </div>
+
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-orange-100">
+
+            <div
+              className="h-full rounded-full bg-[#E8751A] transition-all duration-300"
+              style={{
+                width: `${
+                  totalItems > 0
+                    ? (purchasedCount / totalItems) * 100
+                    : 0
+                }%`,
+              }}
+            />
+
+          </div>
+
+        </div>
+
+
+        {/* Ingredients */}
+        <div className="mt-6">
+
+          <div className="mb-3 flex items-center justify-between">
+
+            <h3 className="font-semibold text-gray-800">
+              Items to buy
+            </h3>
+
+            <span className="text-sm text-gray-500">
+              {totalItems} items
+            </span>
+
+          </div>
+
+          <div className="space-y-2">
+
+            {recipe.ingredients.map((ingredient, index) => {
+
+              const isPurchased = purchasedItems.includes(index);
+
+              return (
+                <label
+                  key={index}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
+                    isPurchased
+                      ? "border-green-200 bg-green-50"
+                      : "border-gray-100 hover:bg-[#FFF9F0]"
+                  }`}
+                >
+
+                  <input
+                    type="checkbox"
+                    checked={isPurchased}
+                    onChange={() => togglePurchased(index)}
+                    className="h-5 w-5 accent-[#164C3A]"
+                  />
+
+                  <span
+                    className={`flex-1 text-sm ${
+                      isPurchased
+                        ? "text-gray-400 line-through"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {ingredient.name}
+                  </span>
+
+                  <span className="text-sm font-medium text-gray-500">
+                    {ingredient.quantity}
+                  </span>
+
+                </label>
+              );
+
+            })}
+
+          </div>
+
+        </div>
+
+
+        {/* Actions */}
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+
+          <button
+            onClick={copyShoppingList}
+            className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            {copied ? "✓ Copied!" : "📋 Copy List"}
+          </button>
+
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl bg-[#164C3A] py-3 text-sm font-semibold text-white transition hover:bg-green-900"
+          >
+            Done
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
   );
 }
 
