@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Header from "./Header";
 
 export default function ClaudeRecipe({ recipe, onBack }) {
   const [comingSoonMessage, setComingSoonMessage] = useState("");
@@ -142,7 +143,12 @@ export default function ClaudeRecipe({ recipe, onBack }) {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFF9F0] px-6 py-10 md:px-12">
+    <>
+    <Header 
+      onBack={onBack}
+    />
+    
+      <main className="min-h-screen bg-[#FFF9F0] px-6 py-10 md:px-12">
 
       <div className="mx-auto max-w-6xl">
 
@@ -366,6 +372,7 @@ export default function ClaudeRecipe({ recipe, onBack }) {
       </div>
 
     </main>
+    </>
   );
 }
 

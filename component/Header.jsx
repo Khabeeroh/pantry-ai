@@ -1,12 +1,14 @@
-export default function Header({ onGoToRecipes}) {
+export default function Header({ onGoToRecipes, onBack}) {
   return (
     <header className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 md:px-20 py-5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 md:px-8 lg:px-20 py-5">
 
         {/* Logo */}
         <button
           type="button"
           className="text-xl font-bold text-[#164C3A]"
+          onClick={onBack}
+
         >
           🥕 PantryPal AI
         </button>

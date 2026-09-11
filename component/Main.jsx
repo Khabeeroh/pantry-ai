@@ -3,7 +3,7 @@ import { getRecipeFromMistral } from "../api/AI";
 import { presetRecipes } from "/data/recipe";
 import Header from "./Header";
 
-export default function Main({ onRecipeGenerated, onGoToRecipes }) {
+export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
   const [ingredients, setIngredients] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +43,8 @@ export default function Main({ onRecipeGenerated, onGoToRecipes }) {
   return (
     <main className="min-h-screen">
       <Header 
-        onGoToRecipes={onGoToRecipes} />
+        onGoToRecipes={onGoToRecipes}
+        onBack={onGoHome} />
 
       {/* Hero */}
       <section className="px-6 py-16 md:px-12 lg:px-20">
