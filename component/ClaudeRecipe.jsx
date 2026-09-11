@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Header from "./Header";
 
-export default function ClaudeRecipe({ recipe, onBack, ingredientsArr = [] }) {
+export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, ingredientsArr = [] }) {
   const [comingSoonMessage, setComingSoonMessage] = useState("");
   const [showCookingMode, setShowCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -222,6 +222,7 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
     <>
       <Header
         onBack={onBack}
+        onGoToRecipes={onGoToRecipes}
       />
 
       <main className="min-h-screen bg-[#FFF9F0] px-6 py-10 md:px-12">

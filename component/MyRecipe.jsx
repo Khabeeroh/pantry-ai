@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "./Header";
 
-export default function MyRecipes({ onOpenRecipe, onBack }) {
+export default function MyRecipes({ onOpenRecipe, onBack, onGoToRecipes }) {
   const [recipes, setRecipes] = useState(() => {
     return (
       JSON.parse(localStorage.getItem("pantryPalRecipes")) || []
@@ -30,7 +30,10 @@ export default function MyRecipes({ onOpenRecipe, onBack }) {
   if (recipes.length === 0) {
     return (
       <>
-      <Header />
+      <Header
+      onGoToRecipes={onGoToRecipes}
+      onBack={onBack}
+      />
         <main className="min-h-screen bg-[#FFF9F0] px-6 py-16">
 
         <div className="mx-auto max-w-4xl text-center">

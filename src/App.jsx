@@ -47,6 +47,7 @@ export default function App() {
           recipe={recipe}
           ingredientsArr={ingredientsArr}
           onBack={() => setPage("home")}
+          onGoToRecipes={() => setPage("saved")}
         />
       )}
 
@@ -54,6 +55,7 @@ export default function App() {
         <MyRecipes
           onOpenRecipe={handleOpenSavedRecipe}
           onBack={() => setPage("home")}
+          onGoToRecipes={() => setPage("saved")}
         />
       )}
 
