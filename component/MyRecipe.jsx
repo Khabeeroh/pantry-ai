@@ -69,25 +69,25 @@ export default function MyRecipes({ onOpenRecipe, onBack, onGoToRecipes }) {
   return (
    <>
       {/* <Header /> */}
-       <header className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 lg:px-20 py-5">
+      <header className="border-b border-gray-100 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 lg:px-20 py-5">
 
-        {/* Logo */}
-        <button
-          type="button"
-          className="text-xl font-bold text-[#164C3A]"
-          onClick={onBack}
-        >
-          🥕 PantryPal AI
-        </button>        
-      </div>
-    </header>
+          {/* Logo */}
+          <button
+            type="button"
+            className="text-xl font-bold text-[#164C3A]"
+            onClick={onBack}
+          >
+            🥕 PantryPal AI
+          </button>        
+        </div>
+      </header>
 
 
 
-       <main className="min-h-screen bg-[#FFF9F0] px-6 py-12">
+      <main  data-aos="fade-up" className="min-h-screen bg-[#FFF9F0] px-6 py-12">
 
-      <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl">
 
             <button
               type="button"
@@ -164,7 +164,7 @@ export default function MyRecipes({ onOpenRecipe, onBack, onGoToRecipes }) {
 
         </div>
 
-      </div>
+        </div>
 
     </main>
    </>

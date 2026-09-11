@@ -8,6 +8,7 @@ export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -47,7 +48,7 @@ export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
         onBack={onGoHome} />
 
       {/* Hero */}
-      <section className="px-6 py-16 md:px-12 lg:px-20">
+      <section data-aos="fade-up" className="px-6 py-16 md:px-12 lg:px-20">
         
         <div className="mx-auto max-w-6xl">  
           <div className="grid items-center gap-12 lg:grid-cols-2">
@@ -191,6 +192,7 @@ export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
           type="button"
           onClick={() => onRecipeGenerated(recipe)}
           className="group overflow-hidden rounded-2xl bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+           data-aos="fade-up"
         >
 
           <div className="h-44 overflow-hidden">

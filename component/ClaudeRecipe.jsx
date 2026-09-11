@@ -225,7 +225,7 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
         onGoToRecipes={onGoToRecipes}
       />
 
-      <main className="min-h-screen bg-[#FFF9F0] px-6 py-10 md:px-12">
+      <main data-aos="fade-up" className="min-h-screen  bg-[#FFF9F0] px-6 py-10 md:px-12">
 
         <div className="mx-auto max-w-6xl">
 
@@ -255,7 +255,7 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
 
             </div>
 
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center" data-aos="fade-up">
 
               <div className="mb-4 flex gap-2">
                 <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-[#164C3A]">
@@ -334,7 +334,7 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
           <section className="mt-12 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
 
             {/* Ingredients */}
-            <div className="rounded-3xl bg-white p-7 shadow-sm">
+            <div className="rounded-3xl bg-white p-7 shadow-sm" data-aos="fade-up" data-aos-delay="100">
 
               <h2 className="text-2xl font-bold text-[#164C3A]">
                 🛒 Ingredients

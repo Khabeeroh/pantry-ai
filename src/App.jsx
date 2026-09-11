@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import AOS from "aos"
+import "aos/dist/aos.css"
 import Main from "../component/Main";
 import ClaudeRecipe from "../component/ClaudeRecipe";
 import MyRecipes from "../component/MyRecipe";
 
 
 export default function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 1500,
+      offset: 100,
+    });
+  }, []);
+
   const [page, setPage] = useState("home");
   const [recipe, setRecipe] = useState(null);
   const [ingredientsArr, setIngredientsArr] = useState([]);
@@ -19,6 +28,8 @@ export default function App() {
       behavior: "smooth",
     });
   }
+
+
 
   function handleOpenSavedRecipe(savedRecipe) {
     setRecipe(savedRecipe);
