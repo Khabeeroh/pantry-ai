@@ -1,13 +1,14 @@
 import { useState } from "react";
 import Header from "./Header";
 
-export default function ClaudeRecipe({ recipe, onBack }) {
+export default function ClaudeRecipe({ recipe, onBack, ingredientsArr = [] }) {
   const [comingSoonMessage, setComingSoonMessage] = useState("");
   const [showCookingMode, setShowCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [saved, setSaved] = useState(false);
 
   const [showShoppingList, setShowShoppingList] = useState(false);
+  const [activeTab, setActiveTab] = useState("missing");
   const [purchasedItems, setPurchasedItems] = useState([]);
   const [copied, setCopied] = useState(false);
 
@@ -29,46 +30,58 @@ export default function ClaudeRecipe({ recipe, onBack }) {
     );
 
     if (!alreadySaved) {
+      const recipeWithIngredients = {
+        ...recipe,
+        userIngredients: ingredientsArr,
+      };
       localStorage.setItem(
         "pantryPalRecipes",
-        JSON.stringify([...savedRecipes, recipe])
+        JSON.stringify([...savedRecipes, recipeWithIngredients])
       );
     }
 
     setSaved(true);
   }
 
-  function togglePurchased(index) {
-    setPurchasedItems((prev) =>
-      prev.includes(index)
-        ? prev.filter((item) => item !== index)
-        : [...prev, index]
-    );
-  }
+ function togglePurchased(itemKey) {
+  setPurchasedItems((prev) =>
+    prev.includes(itemKey)
+      ? prev.filter((item) => item !== itemKey)
+      : [...prev, itemKey]
+  );
+}
 
   async function copyShoppingList() {
-    const shoppingList = recipe.ingredients
-      .map(
-        (ingredient) =>
-          `- ${ingredient.name}: ${ingredient.quantity}`
-      )
-      .join("\n");
+  const ingredientsToCopy =
+    activeTab === "missing"
+      ? missingIngredients
+      : recipe.ingredients;
 
-    try {
-      await navigator.clipboard.writeText(
-        `${recipe.title} - Shopping List\n\n${shoppingList}`
-      );
+  const shoppingList = ingredientsToCopy
+    .map(
+      (ingredient) =>
+        `- ${ingredient.name}: ${ingredient.quantity}`
+    )
+    .join("\n");
 
-      setCopied(true);
+  try {
+    await navigator.clipboard.writeText(
+      `${recipe.title} - ${
+        activeTab === "missing"
+          ? "Missing Ingredients"
+          : "All Ingredients"
+      }\n\n${shoppingList}`
+    );
 
-      setTimeout(() => {
-        setCopied(false);
-      }, 2500);
+    setCopied(true);
 
-    } catch (error) {
-      console.error("Failed to copy shopping list:", error);
-    }
+    setTimeout(() => {
+      setCopied(false);
+    }, 2500);
+  } catch (error) {
+    console.error("Failed to copy shopping list:", error);
   }
+}
 
   function nextStep() {
     if (currentStep < recipe.instructions.length - 1) {
@@ -81,6 +94,33 @@ export default function ClaudeRecipe({ recipe, onBack }) {
       setCurrentStep((prev) => prev - 1);
     }
   }
+function normalizeIngredient(name = "") {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[.,]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+const userIngredients = ingredientsArr.map((ingredient) =>
+  normalizeIngredient(
+    typeof ingredient === "string"
+      ? ingredient
+      : ingredient.name
+  )
+);
+
+const missingIngredients = recipe.ingredients.filter((ingredient) => {
+  const recipeIngredient = normalizeIngredient(ingredient.name);
+
+  return !userIngredients.some(
+    (userIngredient) =>
+      recipeIngredient === userIngredient ||
+      recipeIngredient.includes(userIngredient) ||
+      userIngredient.includes(recipeIngredient)
+  );
+});
+
 
   if (showCookingMode) {
     const instruction = recipe.instructions[currentStep];
@@ -275,7 +315,10 @@ export default function ClaudeRecipe({ recipe, onBack }) {
                 </button>
 
                 <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
-                  onClick={() => setShowShoppingList(true)}
+                  onClick={() => {
+                    setActiveTab("missing");
+                    setShowShoppingList(true);
+                  }}
                 >
                   🛒 Shopping List
                 </button>
@@ -408,14 +451,18 @@ export default function ClaudeRecipe({ recipe, onBack }) {
       </main>
 
       {showShoppingList && (
-        <ShoppingListModal
-          recipe={recipe}
-          purchasedItems={purchasedItems}
-          togglePurchased={togglePurchased}
-          copyShoppingList={copyShoppingList}
-          copied={copied}
-          onClose={() => setShowShoppingList(false)}
-        />
+      <ShoppingListModal
+        recipe={recipe}
+        missingIngredients={missingIngredients}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        purchasedItems={purchasedItems}
+        togglePurchased={togglePurchased}
+        copyShoppingList={copyShoppingList}
+        copied={copied}
+        setCopied={setCopied}
+        onClose={() => setShowShoppingList(false)}
+      />
       )}
     </>
   );
@@ -423,14 +470,28 @@ export default function ClaudeRecipe({ recipe, onBack }) {
 
 function ShoppingListModal({
   recipe,
+  missingIngredients,
+  activeTab,
+  setActiveTab,
   purchasedItems,
   togglePurchased,
   copyShoppingList,
   copied,
+  setCopied,
   onClose,
 }) {
-  const totalItems = recipe.ingredients.length;
-  const purchasedCount = purchasedItems.length;
+  const ingredientsToDisplay =
+    activeTab === "missing"
+      ? missingIngredients
+      : recipe.ingredients;
+
+  const totalItems = ingredientsToDisplay.length;
+
+  const purchasedCount = ingredientsToDisplay.filter((_, index) =>
+    purchasedItems.includes(
+      `${activeTab}-${index}`
+    )
+  ).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 backdrop-blur-sm">
@@ -442,15 +503,17 @@ function ShoppingListModal({
 
           <div>
             <div className="flex items-center gap-2">
+
               <span className="text-2xl">🛒</span>
 
               <h2 className="text-2xl font-bold text-[#164C3A]">
                 Shopping List
               </h2>
+
             </div>
 
             <p className="mt-2 text-sm text-gray-500">
-              Everything you need for {recipe.title}.
+              Here's what you need for this recipe.
             </p>
           </div>
 
@@ -464,47 +527,65 @@ function ShoppingListModal({
         </div>
 
 
-        {/* Progress */}
-        <div className="mt-6 rounded-2xl bg-[#FFF9F0] p-4">
+        {/* Tabs */}
+        <div className="mt-6 flex rounded-xl border border-gray-200 p-1">
 
-          <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              setActiveTab("missing");
+              setCopied(false);
+            }}
+            className={`flex-1 rounded-lg px-3 py-3 text-sm font-semibold transition ${
+              activeTab === "missing"
+                ? "bg-[#164C3A] text-white"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            Missing ingredients ({missingIngredients.length})
+          </button>
 
-            <p className="text-sm font-medium text-[#164C3A]">
-              {purchasedCount} of {totalItems} items purchased
-            </p>
-
-            <span className="text-sm font-semibold text-[#E8751A]">
-              {totalItems > 0
-                ? Math.round((purchasedCount / totalItems) * 100)
-                : 0}%
-            </span>
-
-          </div>
-
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-orange-100">
-
-            <div
-              className="h-full rounded-full bg-[#E8751A] transition-all duration-300"
-              style={{
-                width: `${totalItems > 0
-                  ? (purchasedCount / totalItems) * 100
-                  : 0
-                  }%`,
-              }}
-            />
-
-          </div>
+          <button
+            onClick={() => {
+              setActiveTab("all");
+              setCopied(false);
+            }}
+            className={`flex-1 rounded-lg px-3 py-3 text-sm font-semibold transition ${
+              activeTab === "all"
+                ? "bg-[#164C3A] text-white"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            All ingredients ({recipe.ingredients.length})
+          </button>
 
         </div>
 
 
-        {/* Ingredients */}
+        {/* Info message */}
+        <div className="mt-5 rounded-2xl bg-green-50 p-4">
+
+          <p className="text-sm leading-6 text-[#164C3A]">
+
+            {activeTab === "missing"
+              ? missingIngredients.length > 0
+                ? "These ingredients were suggested by the AI but were not in your original ingredient list."
+                : "Great! You already have all the ingredients needed for this recipe."
+              : "Here are all the ingredients required to prepare this recipe."}
+
+          </p>
+
+        </div>
+
+
+        {/* Items */}
         <div className="mt-6">
 
           <div className="mb-3 flex items-center justify-between">
 
             <h3 className="font-semibold text-gray-800">
-              Items to buy
+              {activeTab === "missing"
+                ? "Items to buy"
+                : "All ingredients"}
             </h3>
 
             <span className="text-sm text-gray-500">
@@ -513,49 +594,108 @@ function ShoppingListModal({
 
           </div>
 
-          <div className="space-y-2">
 
-            {recipe.ingredients.map((ingredient, index) => {
+          {ingredientsToDisplay.length === 0 ? (
 
-              const isPurchased = purchasedItems.includes(index);
+            <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-center">
 
-              return (
-                <label
-                  key={index}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${isPurchased
-                    ? "border-green-200 bg-green-50"
-                    : "border-gray-100 hover:bg-[#FFF9F0]"
+              <p className="text-3xl">🎉</p>
+
+              <p className="mt-3 font-semibold text-[#164C3A]">
+                No missing ingredients!
+              </p>
+
+              <p className="mt-1 text-sm text-gray-500">
+                You already have everything needed for this recipe.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="space-y-2">
+
+              {ingredientsToDisplay.map((ingredient, index) => {
+
+                const itemKey = `${activeTab}-${index}`;
+
+                const isPurchased =
+                  purchasedItems.includes(itemKey);
+
+                return (
+                  <label
+                    key={itemKey}
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
+                      isPurchased
+                        ? "border-green-200 bg-green-50"
+                        : "border-gray-100 hover:bg-[#FFF9F0]"
                     }`}
-                >
-
-                  <input
-                    type="checkbox"
-                    checked={isPurchased}
-                    onChange={() => togglePurchased(index)}
-                    className="h-5 w-5 accent-[#164C3A]"
-                  />
-
-                  <span
-                    className={`flex-1 text-sm ${isPurchased
-                      ? "text-gray-400 line-through"
-                      : "text-gray-700"
-                      }`}
                   >
-                    {ingredient.name}
-                  </span>
 
-                  <span className="text-sm font-medium text-gray-500">
-                    {ingredient.quantity}
-                  </span>
+                    <input
+                      type="checkbox"
+                      checked={isPurchased}
+                      onChange={() => togglePurchased(itemKey)}
+                      className="h-5 w-5 accent-[#164C3A]"
+                    />
 
-                </label>
-              );
+                    <span
+                      className={`flex-1 text-sm ${
+                        isPurchased
+                          ? "text-gray-400 line-through"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {ingredient.name}
+                    </span>
 
-            })}
+                    <span className="text-sm font-medium text-gray-500">
+                      {ingredient.quantity}
+                    </span>
 
-          </div>
+                  </label>
+                );
+
+              })}
+
+            </div>
+
+          )}
 
         </div>
+
+
+        {/* Progress */}
+        {totalItems > 0 && (
+          <div className="mt-6 rounded-2xl bg-[#FFF9F0] p-4">
+
+            <div className="flex items-center justify-between">
+
+              <p className="text-sm font-medium text-[#164C3A]">
+                {purchasedCount} of {totalItems} items purchased
+              </p>
+
+              <span className="text-sm font-semibold text-[#E8751A]">
+                {Math.round((purchasedCount / totalItems) * 100)}%
+              </span>
+
+            </div>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-orange-100">
+
+              <div
+                className="h-full rounded-full bg-[#E8751A] transition-all duration-300"
+                style={{
+                  width: `${
+                    (purchasedCount / totalItems) * 100
+                  }%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+        )}
 
 
         {/* Actions */}
@@ -563,7 +703,11 @@ function ShoppingListModal({
 
           <button
             onClick={copyShoppingList}
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            className={`flex-1 rounded-xl py-3 text-sm font-semibold transition ${
+              copied
+                ? "border border-green-200 bg-green-50 text-green-700"
+                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
           >
             {copied ? "✓ Copied!" : "📋 Copy List"}
           </button>

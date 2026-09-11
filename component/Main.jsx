@@ -27,7 +27,7 @@ export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
 
       const recipe = await getRecipeFromMistral(ingredientsArray);
 
-      onRecipeGenerated(recipe);
+      onRecipeGenerated(recipe, ingredientsArray);
     } catch (error) {
       console.error(error);
 

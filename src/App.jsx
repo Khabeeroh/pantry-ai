@@ -7,9 +7,11 @@ import MyRecipes from "../component/MyRecipe";
 export default function App() {
   const [page, setPage] = useState("home");
   const [recipe, setRecipe] = useState(null);
+  const [ingredientsArr, setIngredientsArr] = useState([]);
 
-  function handleRecipeGenerated(newRecipe) {
+  function handleRecipeGenerated(newRecipe, ingredientsArray = []) {
     setRecipe(newRecipe);
+    setIngredientsArr(ingredientsArray);
     setPage("recipe");
 
     window.scrollTo({
@@ -20,6 +22,7 @@ export default function App() {
 
   function handleOpenSavedRecipe(savedRecipe) {
     setRecipe(savedRecipe);
+    setIngredientsArr(savedRecipe.userIngredients || []);
     setPage("recipe");
 
     window.scrollTo({
@@ -42,6 +45,7 @@ export default function App() {
       {page === "recipe" && recipe && (
         <ClaudeRecipe
           recipe={recipe}
+          ingredientsArr={ingredientsArr}
           onBack={() => setPage("home")}
         />
       )}
