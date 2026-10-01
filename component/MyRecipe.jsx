@@ -1,172 +1,280 @@
 import { useState, useEffect } from "react";
 import Header from "./Header";
+import { supabase } from "../api/supabase";
 
-export default function MyRecipes({ onOpenRecipe, onBack, onGoToRecipes }) {
-  const [recipes, setRecipes] = useState(() => {
-    return (
-      JSON.parse(localStorage.getItem("pantryPalRecipes")) || []
-    );
-  });
-  
-    // Reload recipes from localStorage when component mounts
+export default function MyRecipes({
+  onOpenRecipe,
+  onBack,
+  onGoToRecipes,
+}) {
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Load recipes from Supabase
   useEffect(() => {
-    const savedRecipes = JSON.parse(localStorage.getItem("pantryPalRecipes")) || [];
-    setRecipes(savedRecipes);
+    async function loadRecipes() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          setRecipes([]);
+          return;
+        }
+
+        const { data, error: recipesError } = await supabase
+          .from("saved_recipes")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (recipesError) {
+          throw recipesError;
+        }
+
+        // Convert Supabase data to the format
+        // your recipe page already expects
+        const formattedRecipes = (data || []).map((recipe) => ({
+          id: recipe.id,
+          title: recipe.title,
+          image: recipe.image,
+          cookingTime: recipe.cooking_time,
+          difficulty: recipe.difficulty,
+          ingredients: recipe.ingredients || [],
+          instructions: recipe.instructions || [],
+          tips: recipe.tips || [],
+          userIngredients: recipe.user_ingredients || [],
+        }));
+
+        setRecipes(formattedRecipes);
+      } catch (error) {
+        console.error("Error loading recipes:", error);
+        setError(
+          error.message || "Something went wrong while loading your recipes."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadRecipes();
   }, []);
 
-  function removeRecipe(id) {
-    const updatedRecipes = recipes.filter(
-      (recipe) => recipe.id !== id
-    );
+  // Delete recipe from Supabase
+  async function removeRecipe(id) {
+    try {
+      setError("");
 
-    localStorage.setItem(
-      "pantryPalRecipes",
-      JSON.stringify(updatedRecipes)
-    );
+      const { error: deleteError } = await supabase
+        .from("saved_recipes")
+        .delete()
+        .eq("id", id);
 
-    setRecipes(updatedRecipes);
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Remove it from the screen immediately
+      setRecipes((currentRecipes) =>
+        currentRecipes.filter((recipe) => recipe.id !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting recipe:", error);
+      setError(
+        error.message || "Something went wrong while deleting the recipe."
+      );
+    }
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <>
+        <Header
+          onGoToRecipes={onGoToRecipes}
+          onBack={onBack}
+        />
+
+        <main className="flex min-h-screen items-center justify-center bg-[#FFF9F0] px-6">
+          <div className="text-center">
+            <div className="text-6xl">🥕</div>
+
+            <p className="mt-4 font-semibold text-[#164C3A]">
+              Loading your recipes...
+            </p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <>
+        <Header
+          onGoToRecipes={onGoToRecipes}
+          onBack={onBack}
+        />
+
+        <main className="min-h-screen bg-[#FFF9F0] px-6 py-16">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="text-6xl">😕</div>
+
+            <h1 className="mt-6 text-2xl font-bold text-[#164C3A]">
+              Something went wrong
+            </h1>
+
+            <p className="mt-3 text-gray-600">
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={onBack}
+              className="mt-6 rounded-xl bg-[#164C3A] px-5 py-3 font-semibold text-white"
+            >
+              Back to Home
+            </button>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  // Empty state
   if (recipes.length === 0) {
     return (
       <>
-      <Header
-      onGoToRecipes={onGoToRecipes}
-      onBack={onBack}
-      />
+        <Header
+          onGoToRecipes={onGoToRecipes}
+          onBack={onBack}
+        />
+
         <main className="min-h-screen bg-[#FFF9F0] px-6 py-16">
+          <div className="mx-auto max-w-4xl text-center">
 
-        <div className="mx-auto max-w-4xl text-center">
-        
-             <button
-              type="button"
-              onClick={onBack}
-              className="mb-8 flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-[#E8751A]"
-            >
-              ← Back to Home
-            </button>
 
-          <div className="text-7xl">
-            🍽️
+            <div className="text-7xl">
+              🍽️
+            </div>
+
+            <h1 className="mt-6 text-3xl font-bold text-[#164C3A]">
+              Your cookbook is empty
+            </h1>
+
+            <p className="mx-auto mt-3 max-w-md text-gray-600">
+              Generate a recipe and save it to start building
+              your personal cookbook.
+            </p>
+
           </div>
-
-          <h1 className="mt-6 text-3xl font-bold text-[#164C3A]">
-            Your cookbook is empty
-          </h1>
-
-          <p className="mx-auto mt-3 max-w-md text-gray-600">
-            Generate a recipe and save it to start building
-            your personal cookbook.
-          </p>
-
-        </div>
-
-      </main>
+        </main>
       </>
     );
   }
 
   return (
-   <>
-      {/* <Header /> */}
-      <header className="border-b border-gray-100 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 lg:px-20 py-5">
+    <>
+      <Header
+        onGoToRecipes={onGoToRecipes}
+        onBack={onBack}
+        currentPage="saved"
+      />
 
-          {/* Logo */}
-          <button
-            type="button"
-            className="text-xl font-bold text-[#164C3A]"
-            onClick={onBack}
-          >
-            🥕 PantryPal AI
-          </button>        
-        </div>
-      </header>
-
-
-
-      <main  data-aos="fade-up" className="min-h-screen bg-[#FFF9F0] px-6 py-12">
-
+      <main
+        // data-aos="fade-up"
+        className=" bg-[#FFF9F0] px-6 py-12"
+      >
         <div className="mx-auto max-w-6xl">
 
-            <button
-              type="button"
-              onClick={onBack}
-              className="mb-8 flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-[#E8751A]"
-            >
-              ← Back to Home
-            </button>
+          {/* <button
+            type="button"
+            onClick={onBack}
+            className="mb-8 flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-[#E8751A]"
+          >
+            ← Back to Home
+          </button> */}
 
-        <h1 className="text-4xl font-bold text-[#164C3A]">
-          My Recipes
-        </h1>
+          <h1 className="text-4xl font-bold text-[#164C3A]">
+            My Recipes
+          </h1>
 
-        <p className="mt-2 text-gray-600">
-          Your personal collection of saved recipes.
-        </p>
+          <p className="mt-2 text-gray-600">
+            Your personal collection of saved recipes.
+          </p>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-          {recipes.map((recipe) => (
+            {recipes.map((recipe) => (
 
-            <div
-              key={recipe.id}
-              className="overflow-hidden rounded-3xl bg-white shadow-sm"
-            >
+              <div
+                key={recipe.id}
+                className="overflow-hidden rounded-3xl bg-white shadow-sm"
+              >
 
-              <div className="h-48 overflow-hidden">
-                {recipe.image ? (
-                  <img
-                    src={recipe.image}
-                    alt={recipe.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-linear-to-br from-green-100 to-orange-100 text-7xl">
-                    🍛
+                <div className="h-48 overflow-hidden">
+                  {recipe.image ? (
+                    <img
+                      src={recipe.image}
+                      alt={recipe.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-linear-to-br from-green-100 to-orange-100 text-7xl">
+                      🍛
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-5">
+
+                  <h2 className="text-xl font-bold text-[#164C3A]">
+                    {recipe.title}
+                  </h2>
+
+                  <p className="mt-2 text-sm text-gray-500">
+                    {recipe.cookingTime} · {recipe.difficulty}
+                  </p>
+
+                  <div className="mt-5 flex gap-3">
+
+                    <button
+                      onClick={() => onOpenRecipe(recipe)}
+                      className="flex-1 rounded-xl bg-[#164C3A] px-4 py-3 text-sm font-semibold text-white"
+                    >
+                      View Recipe
+                    </button>
+
+                    <button
+                      onClick={() => removeRecipe(recipe.id)}
+                      className="rounded-xl border border-red-100 px-4 py-3 text-red-500"
+                    >
+                      🗑️
+                    </button>
+
                   </div>
-                )}
-              </div>
-
-              <div className="p-5">
-
-                <h2 className="text-xl font-bold text-[#164C3A]">
-                  {recipe.title}
-                </h2>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  {recipe.cookingTime} · {recipe.difficulty}
-                </p>
-
-                <div className="mt-5 flex gap-3">
-
-                  <button
-                    onClick={() => onOpenRecipe(recipe)}
-                    className="flex-1 rounded-xl bg-[#164C3A] px-4 py-3 text-sm font-semibold text-white"
-                  >
-                    View Recipe
-                  </button>
-
-                  <button
-                    onClick={() => removeRecipe(recipe.id)}
-                    className="rounded-xl border border-red-100 px-4 py-3 text-red-500"
-                  >
-                    🗑️
-                  </button>
 
                 </div>
 
               </div>
 
-            </div>
+            ))}
 
-          ))}
-
-        </div>
+          </div>
 
         </div>
-
-    </main>
-   </>
+      </main>
+    </>
   );
 }

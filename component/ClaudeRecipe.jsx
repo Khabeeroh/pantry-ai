@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Header from "./Header";
+import { supabase } from "../api/supabase";
 
 export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, ingredientsArr = [] }) {
   const [comingSoonMessage, setComingSoonMessage] = useState("");
@@ -21,28 +22,72 @@ export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, ingredient
     }, 3000);
   }
 
-  function saveRecipe() {
-    const savedRecipes =
-      JSON.parse(localStorage.getItem("pantryPalRecipes")) || [];
+ async function saveRecipe() {
+  setSaved(false);
 
-    const alreadySaved = savedRecipes.some(
-      (item) => item.title === recipe.title
-    );
+  try {
+    // Get the currently logged-in user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (!alreadySaved) {
-      const recipeWithIngredients = {
-        ...recipe,
-        id: crypto.randomUUID(),
-        userIngredients: ingredientsArr,
-      };
-      localStorage.setItem(
-        "pantryPalRecipes",
-        JSON.stringify([...savedRecipes, recipeWithIngredients])
-      );
+    if (userError) {
+      throw userError;
+    }
+
+    if (!user) {
+      setComingSoonMessage("Please log in to save recipes.");
+      return;
+    }
+
+    // Check if this recipe has already been saved
+      const { data: existingRecipes, error: checkError } =
+        await supabase
+          .from("saved_recipes")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("title", recipe.title)
+          .limit(1);
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (existingRecipes && existingRecipes.length > 0) {
+        setSaved(true);
+        setComingSoonMessage("Recipe already saved!");
+        return;
+      }
+
+    // Save recipe to Supabase
+    const { error: insertError } = await supabase
+      .from("saved_recipes")
+      .insert({
+        user_id: user.id,
+        title: recipe.title,
+        image: recipe.image || null,
+        cooking_time: recipe.cookingTime || null,
+        difficulty: recipe.difficulty || null,
+        ingredients: recipe.ingredients || [],
+        instructions: recipe.instructions || [],
+        tips: recipe.tips || [],
+        user_ingredients: ingredientsArr || [],
+      });
+
+    if (insertError) {
+      throw insertError;
     }
 
     setSaved(true);
+    setComingSoonMessage("Recipe saved successfully!");
+  } catch (error) {
+    console.error("Error saving recipe:", error);
+    setComingSoonMessage(
+      error.message || "Something went wrong while saving the recipe."
+    );
   }
+}
 
  function togglePurchased(itemKey) {
   setPurchasedItems((prev) =>
@@ -224,6 +269,7 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
       <Header
         onBack={onBack}
         onGoToRecipes={onGoToRecipes}
+         currentPage="recipe"
       />
 
       <main data-aos="fade-up" className="min-h-screen  bg-[#FFF9F0] px-6 py-10 md:px-12">

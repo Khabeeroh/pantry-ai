@@ -84,6 +84,7 @@ async function handleSelectedRecipe() {
   return (
     <main className="min-h-screen">
       <Header 
+        currentPage="home"
         onGoToRecipes={onGoToRecipes}
         onBack={onGoHome} />
 

@@ -191,8 +191,11 @@ export async function getRecipeSuggestions(ingredientsArr) {
   const ingredientsString = ingredientsArr.join(", ");
 
   try {
+    console.log("Sending ingredients to AI:", ingredientsString);
+
     const response = await hf.chatCompletion({
       model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+
       messages: [
         {
           role: "system",
@@ -209,26 +212,54 @@ Suggest different meals I can make with them.
 `,
         },
       ],
-      max_tokens: 1024,
+
+      max_tokens: 2048,
     });
 
-    const suggestionText = response.choices?.[0]?.message?.content;
+    console.log("Full AI response:", response);
+
+    const suggestionText =
+      response?.choices?.[0]?.message?.content;
 
     if (!suggestionText) {
-      throw new Error("No recipe suggestions were generated.");
+      const reasoning =
+        response?.choices?.[0]?.message?.reasoning_content;
+
+      console.log("AI reasoning:", reasoning);
+
+      throw new Error(
+        "The AI used all available tokens for reasoning and did not return the recipe suggestions."
+      );
     }
+
+    console.log("Suggestion text:", suggestionText);
 
     const cleanedSuggestions = suggestionText
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
 
-    return JSON.parse(cleanedSuggestions);
+    console.log("Cleaned suggestions:", cleanedSuggestions);
+
+    const parsedSuggestions = JSON.parse(cleanedSuggestions);
+
+    if (
+      !parsedSuggestions.suggestions ||
+      !Array.isArray(parsedSuggestions.suggestions)
+    ) {
+      throw new Error(
+        "AI response does not contain a valid suggestions array."
+      );
+    }
+
+    return parsedSuggestions;
 
   } catch (error) {
     console.error("Recipe suggestion error:", error);
+
     throw new Error(
-      "Unable to generate recipe suggestions. Please try again."
+      error.message ||
+        "Unable to generate recipe suggestions. Please try again."
     );
   }
 }
