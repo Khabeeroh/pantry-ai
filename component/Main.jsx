@@ -1,45 +1,85 @@
 import { useState } from "react";
-import { getRecipeFromMistral } from "../api/AI";
+import {
+  getRecipeSuggestions,
+  getRecipeFromMistral,
+} from "../api/AI";
+
 import { presetRecipes } from "/data/recipe";
 import Header from "./Header";
 
 export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
-  const [ingredients, setIngredients] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const [ingredients, setIngredients] = useState("");
+const [loading, setLoading] = useState(false);
+const [generatingRecipe, setGeneratingRecipe] = useState(false);
+const [error, setError] = useState("");
+
+const [suggestions, setSuggestions] = useState([]);
+const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+const [ingredientsArray, setIngredientsArray] = useState([]);
 
 
   async function handleSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!ingredients.trim()) {
-      setError("Please enter at least one ingredient.");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const ingredientsArray = ingredients
-        .split(",")
-        .map((ingredient) => ingredient.trim())
-        .filter(Boolean);
-
-      const recipe = await getRecipeFromMistral(ingredientsArray);
-
-      onRecipeGenerated(recipe, ingredientsArray);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.message ||
-        "Something went wrong while generating your recipe."
-      );
-    } finally {
-      setLoading(false);
-    }
+  if (!ingredients.trim()) {
+    setError("Please enter at least one ingredient.");
+    return;
   }
+
+  setError("");
+  setLoading(true);
+
+  try {
+    const ingredientsArray = ingredients
+      .split(",")
+      .map((ingredient) => ingredient.trim())
+      .filter(Boolean);
+
+    setIngredientsArray(ingredientsArray);
+
+    const result = await getRecipeSuggestions(ingredientsArray);
+
+    setSuggestions(result.suggestions || []);
+    setSelectedSuggestion(null);
+  } catch (error) {
+    console.error(error);
+
+    setError(
+      error.message ||
+        "Something went wrong while finding recipe ideas."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function handleSelectedRecipe() {
+  if (!selectedSuggestion) {
+    setError("Please select a recipe first.");
+    return;
+  }
+
+  setError("");
+  setGeneratingRecipe(true);
+
+  try {
+    const recipe = await getRecipeFromMistral(
+      ingredientsArray,
+      selectedSuggestion.title
+    );
+
+    onRecipeGenerated(recipe, ingredientsArray);
+  } catch (error) {
+    console.error(error);
+
+    setError(
+      error.message ||
+        "Something went wrong while creating your recipe."
+    );
+  } finally {
+    setGeneratingRecipe(false);
+  }
+}
 
   return (
     <main className="min-h-screen">
@@ -99,14 +139,98 @@ export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
                   {loading ? (
                     <>
                       <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                      Creating your recipe...
+                       Finding recipe ideas...
                     </>
                   ) : (
-                    <>✨ Create My Recipe</>
+                    <>✨ Find Recipe Ideas</>
                   )}
                 </button>
 
               </form>
+                  {suggestions.length > 0 && (
+                    <div className="mt-8">
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-[#164C3A]">
+                          What would you like to cook?
+                        </h2>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                          PantryPal found these meals based on your ingredients.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {suggestions.map((suggestion, index) => {
+                          const isSelected =
+                            selectedSuggestion?.title === suggestion.title;
+
+                          return (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => setSelectedSuggestion(suggestion)}
+                              className={`w-full rounded-2xl border p-4 text-left transition ${
+                                isSelected
+                                  ? "border-[#E8751A] bg-orange-50 shadow-md"
+                                  : "border-gray-200 bg-white hover:border-orange-200 hover:shadow-sm"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold ${
+                                    isSelected
+                                      ? "border-[#E8751A] bg-[#E8751A] text-white"
+                                      : "border-gray-300 text-gray-400"
+                                  }`}
+                                >
+                                  {isSelected ? "✓" : index + 1}
+                                </div>
+
+                                <div className="flex-1">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <h3 className="font-bold text-[#164C3A]">
+                                      {suggestion.title}
+                                    </h3>
+
+                                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-[#164C3A]">
+                                      {suggestion.estimatedTime}
+                                    </span>
+                                  </div>
+
+                                  <p className="mt-1 text-sm leading-6 text-gray-600">
+                                    {suggestion.description}
+                                  </p>
+
+                                  <p className="mt-2 text-xs font-semibold text-[#E8751A]">
+                                    {suggestion.cuisine}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedSuggestion && (
+                        <button
+                          type="button"
+                          onClick={handleSelectedRecipe}
+                          disabled={generatingRecipe}
+                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#164C3A] px-6 py-4 font-semibold text-white transition hover:bg-[#0F392B] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {generatingRecipe ? (
+                            <>
+                              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                              Creating {selectedSuggestion.title}...
+                            </>
+                          ) : (
+                            <>👩🏽‍🍳 Cook This Recipe</>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
 
               {/* Quick options */}
               <div className="mt-5 flex flex-wrap gap-3">

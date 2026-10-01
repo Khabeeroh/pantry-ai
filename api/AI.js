@@ -1,12 +1,22 @@
 import { HfInference } from "@huggingface/inference";
 
 const SYSTEM_PROMPT = `
-You are PantryPal AI, an intelligent cooking assistant.
+You are PantryPal AI, an intelligent cooking assistant
+with strong knowledge of Nigerian, West African, and international cuisine.
 
-The user will give you a list of ingredients they currently have.
+The user will provide ingredients and select a specific recipe.
 
-Create a delicious recipe using those ingredients. You may add a small number
-of common ingredients if necessary, but prioritize the ingredients provided.
+Your job is to generate the complete recipe for the selected dish.
+
+IMPORTANT:
+- Respect the selected recipe exactly.
+- Prioritize the ingredients provided by the user.
+- Use realistic Nigerian cooking methods when the selected dish is Nigerian.
+- Use familiar Nigerian ingredient names and measurements where appropriate.
+- You may add a small number of common ingredients when necessary.
+- Do not completely change the selected dish into another recipe.
+- Keep quantities realistic.
+- Make the instructions clear enough for a home cook to follow.
 
 Return ONLY valid JSON.
 Do not include markdown.
@@ -38,6 +48,73 @@ Use exactly this structure:
   ],
   "tips": [
     "Add more pepper if you prefer a spicy meal."
+  ]
+}
+`;
+
+const RECIPE_SUGGESTION_PROMPT = `
+You are PantryPal AI, a smart cooking assistant for Nigerian and
+international home cooks.
+
+The user will provide ingredients they currently have.
+
+First, understand the ingredients as a combination.
+
+If the ingredients naturally support Nigerian cuisine:
+- Prioritize Nigerian dishes.
+- Use familiar Nigerian meal names.
+- Prefer traditional Nigerian combinations.
+- Think like a Nigerian home cook.
+
+If the ingredients do not naturally support Nigerian cuisine:
+- Do not force Nigerian food.
+- Suggest suitable international dishes instead.
+
+If both Nigerian and international dishes are possible:
+- Prioritize Nigerian dishes.
+- You may include an international option for variety.
+
+Examples:
+
+yam + vegetable leaf + chicken + palm oil
+→ Pounded Yam with Efo Riro & Chicken
+→ Boiled Yam with Efo Riro
+→ Yam Pottage with Chicken
+
+rice + tomatoes + pepper + onions + chicken
+→ Nigerian Chicken Jollof Rice
+→ Nigerian Chicken Fried Rice
+
+pasta + cheese + mushrooms + garlic
+→ Creamy Mushroom Pasta
+→ Garlic Cheese Pasta
+
+Important:
+- Suggest exactly 4 recipes.
+- Keep descriptions SHORT.
+- Each description should be one short sentence.
+- Prioritize the user's ingredients.
+- Only suggest a small number of additional common ingredients.
+- Make each suggestion meaningfully different.
+- Do not generate the full recipe yet.
+- Do not invent traditional Nigerian dishes.
+
+Return ONLY valid JSON.
+No markdown.
+No code fences.
+No explanation.
+No text before or after the JSON.
+
+Use exactly this structure:
+
+{
+  "suggestions": [
+    {
+      "title": "Pounded Yam with Efo Riro & Chicken",
+      "description": "Soft pounded yam served with Nigerian vegetable soup and chicken.",
+      "cuisine": "Nigerian",
+      "estimatedTime": "50 mins"
+    }
   ]
 }
 `;
@@ -108,8 +185,56 @@ function getRecipeImage(title) {
     ? recipeImages[match]
     : "./images/recipe-generated1.png";
 }
+
+// Suggested Recipe
+export async function getRecipeSuggestions(ingredientsArr) {
+  const ingredientsString = ingredientsArr.join(", ");
+
+  try {
+    const response = await hf.chatCompletion({
+      model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+      messages: [
+        {
+          role: "system",
+          content: RECIPE_SUGGESTION_PROMPT,
+        },
+        {
+          role: "user",
+          content: `
+I currently have these ingredients:
+
+${ingredientsString}
+
+Suggest different meals I can make with them.
+`,
+        },
+      ],
+      max_tokens: 1024,
+    });
+
+    const suggestionText = response.choices?.[0]?.message?.content;
+
+    if (!suggestionText) {
+      throw new Error("No recipe suggestions were generated.");
+    }
+
+    const cleanedSuggestions = suggestionText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleanedSuggestions);
+
+  } catch (error) {
+    console.error("Recipe suggestion error:", error);
+    throw new Error(
+      "Unable to generate recipe suggestions. Please try again."
+    );
+  }
+}
+
 // GENERATE RECIPE
-export async function getRecipeFromMistral(ingredientsArr) {
+export async function getRecipeFromMistral(ingredientsArr, selectedRecipe) {
 
   const ingredientsString = ingredientsArr.join(", ");
 
@@ -125,14 +250,20 @@ export async function getRecipeFromMistral(ingredientsArr) {
           content: SYSTEM_PROMPT,
         },
 
-        {
+      {
           role: "user",
           content: `
         I currently have these ingredients:
 
         ${ingredientsString}
 
-        Create a recipe I can make with them.
+        The user selected this recipe:
+
+        ${selectedRecipe}
+
+        Create the complete recipe for this exact dish.
+
+        Do not change it into another dish.
         `,
         },
       ],
@@ -185,3 +316,4 @@ export async function getRecipeFromMistral(ingredientsArr) {
 
   }
 }
+
