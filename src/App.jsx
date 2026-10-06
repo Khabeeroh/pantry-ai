@@ -5,6 +5,7 @@ import "aos/dist/aos.css";
 import Main from "../component/Main";
 import ClaudeRecipe from "../component/ClaudeRecipe";
 import MyRecipes from "../component/MyRecipe";
+import Profile from "../component/Profile";
 
 import Login from "../component/Login";
 import SignUp from "../component/SignUp";
@@ -26,6 +27,11 @@ function PantryPalApp() {
       offset: 100,
     });
   }, []);
+
+ function handleGoToProfile() {
+  setPage("profile");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
   function handleRecipeGenerated(
     newRecipe,
@@ -97,6 +103,7 @@ function PantryPalApp() {
           onRecipeGenerated={handleRecipeGenerated}
           onGoToRecipes={() => setPage("saved")}
           onGoHome={() => setPage("home")}
+          onGoToProfile={handleGoToProfile}
         />
       )}
 
@@ -106,6 +113,7 @@ function PantryPalApp() {
           ingredientsArr={ingredientsArr}
           onBack={() => setPage("home")}
           onGoToRecipes={() => setPage("saved")}
+          onGoToProfile={handleGoToProfile}
         />
       )}
 
@@ -114,6 +122,15 @@ function PantryPalApp() {
           onOpenRecipe={handleOpenSavedRecipe}
           onBack={() => setPage("home")}
           onGoToRecipes={() => setPage("saved")}
+          onGoToProfile={handleGoToProfile}
+        />
+      )}
+
+      {page === "profile" && (
+        <Profile
+          onGoToRecipes={() => setPage("saved")}
+          onBack={() => setPage("home")}
+          onGoToProfile={handleGoToProfile}
         />
       )}
 

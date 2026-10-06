@@ -2,7 +2,7 @@ import { useState } from "react";
 import Header from "./Header";
 import { supabase } from "../api/supabase";
 
-export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, ingredientsArr = [] }) {
+export default function ClaudeRecipe({ recipe, onBack, onGoToRecipes, onGoToProfile, ingredientsArr = [] }) {
   const [comingSoonMessage, setComingSoonMessage] = useState("");
   const [showCookingMode, setShowCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -267,22 +267,23 @@ const missingIngredients = recipe.ingredients.filter((ingredient) => {
   return (
     <>
       <Header
-        onBack={onBack}
+        currentPage="recipe"
         onGoToRecipes={onGoToRecipes}
-         currentPage="recipe"
+        onBack={onBack}
+        onGoToProfile={onGoToProfile}
       />
 
       <main data-aos="fade-up" className="min-h-screen  bg-[#FFF9F0] px-6 py-10 md:px-12">
 
         <div className="mx-auto max-w-6xl">
 
-          {/* Back */}
+          {/* Back
           <button
             onClick={onBack}
             className="mb-8 text-sm font-medium text-gray-600 hover:text-[#164C3A]"
           >
             ← Back to recipes
-          </button>
+          </button> */}
 
           {/* Header */}
           <section className="grid gap-8 lg:grid-cols-2">

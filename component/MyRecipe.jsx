@@ -6,6 +6,7 @@ export default function MyRecipes({
   onOpenRecipe,
   onBack,
   onGoToRecipes,
+  onGoToProfile,
 }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,8 +102,10 @@ export default function MyRecipes({
     return (
       <>
         <Header
+          currentPage="saved"
           onGoToRecipes={onGoToRecipes}
           onBack={onBack}
+          onGoToProfile={onGoToProfile}
         />
 
         <main className="flex min-h-screen items-center justify-center bg-[#FFF9F0] px-6">

@@ -7,7 +7,7 @@ import {
 import { presetRecipes } from "/data/recipe";
 import Header from "./Header";
 
-export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome }) {
+export default function Main({ onRecipeGenerated, onGoToRecipes, onGoHome, onGoToProfile }) {
 const [ingredients, setIngredients] = useState("");
 const [loading, setLoading] = useState(false);
 const [generatingRecipe, setGeneratingRecipe] = useState(false);
@@ -83,10 +83,12 @@ async function handleSelectedRecipe() {
 
   return (
     <main className="min-h-screen">
-      <Header 
+    <Header
         currentPage="home"
         onGoToRecipes={onGoToRecipes}
-        onBack={onGoHome} />
+        onBack={onGoHome}
+        onGoToProfile={onGoToProfile}
+      />
 
       {/* Hero */}
       <section data-aos="fade-up" className="px-6 py-16 md:px-12 lg:px-20">
