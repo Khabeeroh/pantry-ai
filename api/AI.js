@@ -109,8 +109,53 @@ export async function getRecipeFromMistral(
     selectedRecipe,
   });
 
+  const ingredients = recipe.ingredients.map((ingredient, index) => {
+    if (typeof ingredient === "string" && ingredient.trim()) {
+      return { name: ingredient.trim(), quantity: "" };
+    }
+
+    if (
+      ingredient &&
+      typeof ingredient === "object" &&
+      typeof ingredient.name === "string"
+    ) {
+      return {
+        name: ingredient.name,
+        quantity: ingredient.quantity ?? "",
+      };
+    }
+
+    throw new Error(`The AI returned an invalid ingredient at position ${index + 1}.`);
+  });
+
+  const instructions = recipe.instructions.map((instruction, index) => {
+    if (typeof instruction === "string" && instruction.trim()) {
+      return {
+        step: index + 1,
+        title: `Step ${index + 1}`,
+        description: instruction.trim(),
+      };
+    }
+
+    if (
+      instruction &&
+      typeof instruction === "object" &&
+      typeof instruction.description === "string"
+    ) {
+      return {
+        step: instruction.step ?? index + 1,
+        title: instruction.title || `Step ${index + 1}`,
+        description: instruction.description,
+      };
+    }
+
+    throw new Error(`The AI returned an invalid instruction at position ${index + 1}.`);
+  });
+
   return {
     ...recipe,
+    ingredients,
+    instructions,
     image: getRecipeImage(recipe.title),
   };
 }

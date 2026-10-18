@@ -48,11 +48,17 @@ Return ONLY valid JSON using this exact structure:
   "servings": 2,
   "cuisine": "Nigerian",
   "ingredients": [
-    "Ingredient with quantity"
+    {
+      "name": "Ingredient name",
+      "quantity": "Amount"
+    }
   ],
   "instructions": [
-    "Step 1",
-    "Step 2"
+    {
+      "step": 1,
+      "title": "Step title",
+      "description": "Detailed instruction"
+    }
   ],
   "tips": [
     "Helpful cooking tip"
