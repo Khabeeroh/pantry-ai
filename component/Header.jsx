@@ -228,7 +228,7 @@ export default function Header({
             type="button"
             onClick={() => {
               setShowMobileMenu(false);
-              // Profile page will be connected here
+              onGoToRecipes();
             }}
             className={`mb-1 w-full rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
               isActive("profile")
