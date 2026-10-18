@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getRecipeSuggestions,
   getRecipeFromMistral,
@@ -16,6 +16,16 @@ const [error, setError] = useState("");
 const [suggestions, setSuggestions] = useState([]);
 const [selectedSuggestion, setSelectedSuggestion] = useState(null);
 const [ingredientsArray, setIngredientsArray] = useState([]);
+const suggestionsRef = useRef(null);
+
+useEffect(() => {
+  if (suggestions.length > 0) {
+    suggestionsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+}, [suggestions]);
 
 
   async function handleSubmit(e) {
@@ -151,7 +161,7 @@ async function handleSelectedRecipe() {
 
               </form>
                   {suggestions.length > 0 && (
-                    <div className="mt-8">
+                    <div ref={suggestionsRef} className="mt-8 scroll-mt-6">
                       <div className="mb-4">
                         <h2 className="text-2xl font-bold text-[#164C3A]">
                           What would you like to cook?
