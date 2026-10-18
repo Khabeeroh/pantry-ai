@@ -39,7 +39,7 @@ const [ingredientsArray, setIngredientsArray] = useState([]);
 
     const result = await getRecipeSuggestions(ingredientsArray);
 
-    setSuggestions(result.suggestions || []);
+    setSuggestions(result);
     setSelectedSuggestion(null);
   } catch (error) {
     console.error(error);
